@@ -52,11 +52,13 @@ services:
     container_name: tradingo-prometheus
     restart: unless-stopped
     volumes:
-      - ./prometheus/config:/etc/prometheus/
       - ./prometheus/data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    user: root
     expose:
       - 9090
     ports:
@@ -68,6 +70,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./grafana:/var/lib/grafana
+    ports:
+      - 3000:3000
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=tradingopwd
       - GF_USERS_ALLOW_SIGN_UP=false
@@ -78,3 +82,26 @@ services:
       - GF_SMTP_PASSWORD=mypassword
       - GF_SMTP_FROM_ADDRESS=myaddress@gmail.com
 
+  tradingo-zookeeper:
+    container_name: tradingo-zookeper
+    restart: unless-stopped
+    image: wurstmeister/zookeeper
+    ports:
+      - 2181:2181
+    volumes:
+      - ./zookeper/data:/opt/zookeeper-3.4.13/data
+  tradingo-kafka:
+    container_name: tradingo-kafka
+    image: wurstmeister/kafka
+    restart: unless-stopped
+    depends_on:
+      - tradingo-zookeeper
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: tradingo-kafka
+      KAFKA_ZOOKEEPER_CONNECT: tradingo-zookeeper:2181
+      KAFKA_CREATE_TOPICS: "t1:1:1"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./kafka:/kafka

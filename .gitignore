@@ -76,3 +76,9 @@ fabric.properties
 /docker/prometheus/
 /.idea/modules.xml
 /.idea/vcs.xml
+docker/grafana
+docker/kafka
+docker/postgres
+docker/prometheus
+docker/zookeper
+/tradingo-api/.idea/
