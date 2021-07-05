@@ -7,6 +7,8 @@ services:
       context: ../tradingo-api
       dockerfile: Dockerfile
     restart: unless-stopped
+    networks:
+      - tradingo-network
     ports:
       - 8083:8080
 
@@ -22,6 +24,8 @@ services:
       - POSTGRES_PASSWORD=tradingopwd
     ports:
       - 5432:5432
+    networks:
+      - tradingo-network
 
   tradingo-elasticsearch:
     container_name: tradingo-elasticsearch
@@ -37,7 +41,8 @@ services:
         hard: -1
     ports:
       - 9200:9200
-
+    networks:
+      - tradingo-network
   tradingo-kibana:
     container_name: tradingo-kibana
     image: docker.elastic.co/kibana/kibana:7.12.0
@@ -46,12 +51,14 @@ services:
       - 5601:5601
     depends_on:
       - tradingo-elasticsearch
-
+    networks:
+      - tradingo-network
   tradingo-prometheus:
     image: prom/prometheus:latest
     container_name: tradingo-prometheus
     restart: unless-stopped
     volumes:
+      - ./prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./prometheus/data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -63,6 +70,8 @@ services:
       - 9090
     ports:
       - 9090:9090
+    networks:
+      - tradingo-network
 
   tradingo-grafana:
     container_name: tradingo-grafana
@@ -81,6 +90,8 @@ services:
       - GF_SMTP_USER=myadrress@gmail.com
       - GF_SMTP_PASSWORD=mypassword
       - GF_SMTP_FROM_ADDRESS=myaddress@gmail.com
+    networks:
+      - tradingo-network
 
   tradingo-zookeeper:
     container_name: tradingo-zookeper
@@ -90,6 +101,9 @@ services:
       - 2181:2181
     volumes:
       - ./zookeper/data:/opt/zookeeper-3.4.13/data
+    networks:
+      - tradingo-network
+
   tradingo-kafka:
     container_name: tradingo-kafka
     image: wurstmeister/kafka
@@ -105,3 +119,10 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./kafka:/kafka
+    networks:
+      - tradingo-network
+
+networks:
+  tradingo-network:
+    driver: bridge
+    name: tradingo-network

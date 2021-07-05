@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 open class TradingoApplication
 
 fun main(args: Array<String>) {
-	runApplication<TradingoApplication>(*args)
+    runApplication<TradingoApplication>(*args)
 }
