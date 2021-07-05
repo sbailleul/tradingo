@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.9'
 services:
   tradingo-api:
     container_name: tradingo-api
@@ -7,10 +7,11 @@ services:
       context: ../tradingo-api
       dockerfile: Dockerfile
     restart: unless-stopped
-    networks:
-      - tradingo-network
     ports:
       - 8083:8080
+    environment:
+      SPRING_KAFKA_PRODUCER_BOOTSTRAP-SERVERS: "tradingo-kafka:9093"
+      SPRING_KAFKA_CONSUMER_BOOTSTRAP-SERVERS: "tradingo-kafka:9093"
 
   tradingo-postgres:
     container_name: tradingo-postgres
@@ -24,8 +25,7 @@ services:
       - POSTGRES_PASSWORD=tradingopwd
     ports:
       - 5432:5432
-    networks:
-      - tradingo-network
+
 
   tradingo-elasticsearch:
     container_name: tradingo-elasticsearch
@@ -41,8 +41,7 @@ services:
         hard: -1
     ports:
       - 9200:9200
-    networks:
-      - tradingo-network
+
   tradingo-kibana:
     container_name: tradingo-kibana
     image: docker.elastic.co/kibana/kibana:7.12.0
@@ -51,8 +50,7 @@ services:
       - 5601:5601
     depends_on:
       - tradingo-elasticsearch
-    networks:
-      - tradingo-network
+
   tradingo-prometheus:
     image: prom/prometheus:latest
     container_name: tradingo-prometheus
@@ -70,8 +68,7 @@ services:
       - 9090
     ports:
       - 9090:9090
-    networks:
-      - tradingo-network
+
 
   tradingo-grafana:
     container_name: tradingo-grafana
@@ -90,39 +87,32 @@ services:
       - GF_SMTP_USER=myadrress@gmail.com
       - GF_SMTP_PASSWORD=mypassword
       - GF_SMTP_FROM_ADDRESS=myaddress@gmail.com
-    networks:
-      - tradingo-network
+
 
   tradingo-zookeeper:
-    container_name: tradingo-zookeper
-    restart: unless-stopped
+    container_name: tradingo-zookeeper
     image: wurstmeister/zookeeper
     ports:
-      - 2181:2181
-    volumes:
-      - ./zookeper/data:/opt/zookeeper-3.4.13/data
-    networks:
-      - tradingo-network
-
+      - "2181:2181"
   tradingo-kafka:
-    container_name: tradingo-kafka
     image: wurstmeister/kafka
-    restart: unless-stopped
-    depends_on:
-      - tradingo-zookeeper
+    container_name: tradingo-kafka
     ports:
-      - 9092:9092
+      - "9092:9092"
+    expose:
+      - "9093"
     environment:
-      KAFKA_ADVERTISED_HOST_NAME: tradingo-kafka
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://tradingo-kafka:9093,OUTSIDE://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
       KAFKA_ZOOKEEPER_CONNECT: tradingo-zookeeper:2181
-      KAFKA_CREATE_TOPICS: "t1:1:1"
+      KAFKA_CREATE_TOPICS: "topic-test:1:1"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./kafka:/kafka
-    networks:
-      - tradingo-network
 
-networks:
-  tradingo-network:
-    driver: bridge
-    name: tradingo-network
+
+#kafka-console-producer.sh --bootstrap-server localhost:9092 --topic topic-test
+#kafka-console-consumer.sh --bootstrap-server localhost:9092 --group kafka-group --topic topic-test
+#kafka-console-producer.sh --bootstrap-server tradingo-kafka:9093 --topic topic-test
+#kafka-console-consumer.sh --bootstrap-server tradingo-kafka:9093 --group kafka-group --topic topic-test
