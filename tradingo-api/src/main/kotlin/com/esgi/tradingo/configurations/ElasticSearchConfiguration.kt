@@ -19,6 +19,4 @@ class ElasticSearchConfiguration {
     override fun toString(): String {
         return "ElasticSearchConfiguration(host='$host')"
     }
-
-
 }

@@ -1,30 +1,53 @@
 version: '3.9'
 services:
-  tradingo-api:
-    container_name: tradingo-api
-    image: tradingo/api
+  tradingo-education-manager:
+    container_name: tradingo-education-manager
+    image: tradingo/education-manager
     build:
-      context: ../tradingo-api
-      dockerfile: Dockerfile
+      context: ../tradingo
+      dockerfile: education-manager/Dockerfile
     restart: unless-stopped
     ports:
-      - 8083:8080
-    environment:
-      SPRING_KAFKA_PRODUCER_BOOTSTRAP-SERVERS: "tradingo-kafka:9093"
-      SPRING_KAFKA_CONSUMER_BOOTSTRAP-SERVERS: "tradingo-kafka:9093"
+      - 8080:8080
+    env_file:
+      - common.env
 
-  tradingo-postgres:
-    container_name: tradingo-postgres
-    image: postgres
+  tradingo-membership-manager:
+    container_name: tradingo-membership-manager
+    image: tradingo/membership-manager
+    build:
+      context: ../tradingo
+      dockerfile: membership-manager/Dockerfile
     restart: unless-stopped
-    volumes:
-      - ./postgres:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_URL=jdbc:postgresql://localhost:5432/testdb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=tradingopwd
     ports:
-      - 5432:5432
+      - 8083:8083
+    env_file:
+      - common.env
+
+  tradingo-generic-client:
+    container_name: tradingo-generic-client
+    image: tradingo/generic-client
+    build:
+      context: ../tradingo
+      dockerfile: generic-client/Dockerfile
+    restart: unless-stopped
+    ports:
+      - 8081:8081
+    env_file:
+      - common.env
+
+  tradingo-db:
+    container_name: tradingo-db
+    restart: unless-stopped
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=codingDevPwd21
+      - MSSQL_PID=Express
+    ports:
+      - 1433:1433
+    volumes:
+      - ./database:/var/opt/mssql/data
 
 
   tradingo-elasticsearch:
@@ -32,9 +55,15 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.12.0
     restart: unless-stopped
     environment:
-      - bootstrap.memory_lock=true
-      - discovery.type=single-node
+      - network.host=0.0.0.0
+      - node.name=tradingo-elasticsearch
+      - cluster.name=es-docker-cluster
       - cluster.routing.allocation.disk.threshold_enabled=false
+      - bootstrap.memory_lock=true
+      - cluster.initial_master_nodes=tradingo-elasticsearch
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - ./elasticsearch:/usr/share/elasticsearch/data
     ulimits:
       memlock:
         soft: -1
@@ -48,6 +77,10 @@ services:
     restart: unless-stopped
     ports:
       - 5601:5601
+    environment:
+      SERVER_HOST: 0.0.0.0
+      ELASTICSEARCH_URL: http://tradingo-elasticsearch:9200
+      ELASTICSEARCH_HOSTS: '["http://tradingo-elasticsearch:9200"]'
     depends_on:
       - tradingo-elasticsearch
 
@@ -107,7 +140,7 @@ services:
       KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
       KAFKA_ZOOKEEPER_CONNECT: tradingo-zookeeper:2181
-      KAFKA_CREATE_TOPICS: "topic-test:1:1"
+      KAFKA_CREATE_TOPICS: "topic-test:1:1,add-member:1:1"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
