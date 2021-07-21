@@ -2,6 +2,7 @@ package org.tradingo.membershipmanager.domain.members
 
 import org.tradingo.common.domain.Aggregate
 import org.tradingo.common.domain.members.MemberType
+import org.tradingo.common.domain.projects.ProjectId
 import java.util.*
 
 
@@ -16,6 +17,7 @@ class MemberAggregate : Aggregate<MemberId> {
     private var _username: String
     private var _type: MemberType
     private var _id: MemberId
+    private var _projects = mutableListOf<ProjectEntity>()
 
     val lastname get() = _lastname
     val firstname get() = _firstname
@@ -23,6 +25,7 @@ class MemberAggregate : Aggregate<MemberId> {
     val email get() = _email
     val username get() = _username
     val type get() = _type
+    val projects get() = _projects
 
     private constructor(
         id: MemberId,
@@ -31,7 +34,8 @@ class MemberAggregate : Aggregate<MemberId> {
         email: String,
         password: String,
         firstname: String,
-        lastname: String
+        lastname: String,
+        projects: List<ProjectEntity>
     ) {
         _id = id
         _username = username
@@ -40,6 +44,7 @@ class MemberAggregate : Aggregate<MemberId> {
         _firstname = firstname
         _lastname = lastname
         _type = type
+        _projects = projects.toMutableList()
     }
 
     override val id: MemberId
@@ -54,7 +59,7 @@ class MemberAggregate : Aggregate<MemberId> {
             password: String,
             firstname: String,
             lastname: String
-        ) = MemberAggregate(id, type, username, email, password, firstname, lastname)
+        ) = MemberAggregate(id, type, username, email, password, firstname, lastname, listOf())
 
         fun restore(
             id: MemberId,
@@ -63,9 +68,13 @@ class MemberAggregate : Aggregate<MemberId> {
             email: String,
             password: String,
             firstname: String,
-            lastname: String
-        ) = MemberAggregate(id, type, username, email, password, firstname, lastname)
+            lastname: String,
+            projects: List<ProjectEntity>
+        ) = MemberAggregate(id, type, username, email, password, firstname, lastname, projects)
+    }
 
+    fun leaveProject(projectId: ProjectId) {
+        projects.removeIf { it.id == projectId }
     }
 }
 

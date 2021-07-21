@@ -3,14 +3,13 @@ package org.tradingo.common.infrastructure.kafka
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
-import org.tradingo.common.application.contracts.KafkaProducer
+import org.tradingo.common.application.contracts.Producer
 import org.tradingo.common.infrastructure.exceptions.InfrastructureException
 
 abstract class KafkaProducerImpl<TMessage> constructor(val template: KafkaTemplate<String, Any>) :
-    KafkaProducer<TMessage> {
+    Producer<TMessage> {
 
     private val logger: Logger = LoggerFactory.getLogger(KafkaProducerImpl::class.java)
-
 
     protected fun send(topic: String, message: TMessage) {
         try {

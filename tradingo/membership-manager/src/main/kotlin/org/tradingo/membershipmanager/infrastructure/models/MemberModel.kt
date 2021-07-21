@@ -25,4 +25,6 @@ class MemberModel() {
     @Enumerated(EnumType.STRING)
     @Column(name = "type") lateinit var type: MemberType
 
+    @OneToMany(mappedBy = "member", cascade = [CascadeType.ALL])
+    lateinit var projects: MutableCollection<ProjectMemberModel>
 }

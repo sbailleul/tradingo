@@ -15,3 +15,4 @@ class AddMemberListener(val mediator: Mediator) : TradingoKafkaListener<AddMembe
         mediator.dispatch(message.to())
     }
 }
+

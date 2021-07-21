@@ -1,5 +1,6 @@
 package org.tradingo.common.application.contracts
 
-interface KafkaProducer<TMessage> {
+interface Producer<TMessage> {
     fun sendMessage(message: TMessage)
 }
+

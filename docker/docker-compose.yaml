@@ -140,12 +140,7 @@ services:
       KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
       KAFKA_ZOOKEEPER_CONNECT: tradingo-zookeeper:2181
-      KAFKA_CREATE_TOPICS: "topic-test:1:1,add-member:1:1"
+      KAFKA_CREATE_TOPICS: "topic-test:1:1,add-member:1:1,close-project:1:1,leave-project:1:1"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
-
-#kafka-console-producer.sh --bootstrap-server localhost:9092 --topic topic-test
-#kafka-console-consumer.sh --bootstrap-server localhost:9092 --group kafka-group --topic topic-test
-#kafka-console-producer.sh --bootstrap-server tradingo-kafka:9093 --topic topic-test
-#kafka-console-consumer.sh --bootstrap-server tradingo-kafka:9093 --group kafka-group --topic topic-test
