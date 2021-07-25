@@ -11,7 +11,7 @@ import org.tradingo.common.presentation.kafka.TradingoKafkaListener
 @Service
 class LeaveProjectListener(val mediator: Mediator) : TradingoKafkaListener<LeaveProjectMessage> {
 
-    @KafkaListener(topics = [Topics.ADD_MEMBER])
+    @KafkaListener(topics = [Topics.LEAVE_PROJECT])
     override fun listen(message: LeaveProjectMessage) {
         mediator.dispatch(message.to())
     }
